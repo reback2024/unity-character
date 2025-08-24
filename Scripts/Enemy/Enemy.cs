@@ -6,15 +6,22 @@ using Pathfinding;
 using UnityEditorInternal;
 using System.Xml.Serialization;
 //敌人状态枚举
-public enum EnemySateType
+public enum EnemyStateType
 {
-    Idle,Chase,Attack,Hurt,Death
+    Idle,Patrol,Chase,Attack,Hurt,Death
 }
 
 public class Enemy : Character
 {
     [Header("目标")]
     public Transform player;
+
+    [Header("待机巡逻")]
+    public float IdleDuration;//待机时间
+    public Transform[] patrolPoints;//巡逻点
+    public int targetPointIndex = 0;//目标巡逻点
+
+
     [Header("移动追击")]
     [SerializeField] public float currentSpeed = 0;
     public Vector2 MovementInput { get; set; }
@@ -46,9 +53,9 @@ public class Enemy : Character
     [HideInInspector] public Animator animator;
     [HideInInspector] public Collider2D enemyColler;
 
-    private IState currentState;
+    private IState currentState;//当前状态
     // 字典dictionary<键，值>对
-    private Dictionary<EnemySateType, IState> states = new Dictionary<EnemySateType, IState>();
+    private Dictionary<EnemyStateType, IState> states = new Dictionary<EnemyStateType, IState>();
 
     private void Awake()
     {
@@ -59,18 +66,19 @@ public class Enemy : Character
         animator = GetComponent<Animator>();
 
         //实例化敌人状态
-        states.Add(EnemySateType.Idle, new EnemyIdleState(this));
-        states.Add(EnemySateType.Chase, new EnemyChaseState(this));
-        states.Add(EnemySateType.Attack, new EnemyAttackState(this));
-        states.Add(EnemySateType.Hurt, new EnemyHurtState(this));
-        states.Add(EnemySateType.Death, new EnemyDeathState(this));
+        states.Add(EnemyStateType.Idle, new EnemyIdleState(this));
+        states.Add(EnemyStateType.Chase, new EnemyChaseState(this));
+        states.Add(EnemyStateType.Attack, new EnemyAttackState(this));
+        states.Add(EnemyStateType.Hurt, new EnemyHurtState(this));
+        states.Add(EnemyStateType.Death, new EnemyDeathState(this));
+        states.Add(EnemyStateType.Patrol, new EnemyPatrolState(this));
 
         //默认状态
-        TransitionState(EnemySateType.Idle);
+        TransitionState(EnemyStateType.Idle);
     }
 
     //用于切换敌人状态的函数
-    public void TransitionState(EnemySateType type)
+    public void TransitionState(EnemyStateType type)
     {
         if (currentState != null)
         {
@@ -105,6 +113,30 @@ public class Enemy : Character
         }
     }
 
+    #region 移动
+    //移动函数
+    public void Move()
+    {
+        if (MovementInput.magnitude > 0.1f && currentSpeed >= 0)
+        {
+            rb.velocity = MovementInput * currentSpeed;
+            //玩家左右翻转
+            if (MovementInput.x < 0)
+            {
+                sr.flipX = false;
+            }
+            if (MovementInput.x > 0)
+            {
+                sr.flipX = true;
+            }
+        }
+        else
+        {
+            rb.velocity = Vector2.zero;
+        }
+    }
+    #endregion
+
     #region 自动寻路
     //自动寻路
     public void Autopath()
@@ -132,12 +164,13 @@ public class Enemy : Character
         }
     }
     //获取路径点
-    private void GeneratePath(Vector3 target)
+    public void GeneratePath(Vector3 target)
     {
         currentIndex = 0;
         seeker.StartPath(transform.position, target, Path => 
         {
             pathPointlist = Path.vectorPath;
+            //这里找到的是到目标点的路径的每个点的坐标
         });
     }
     #endregion
@@ -176,7 +209,7 @@ public class Enemy : Character
     #region 死亡
     public void EnemyDie()
     {
-        TransitionState(EnemySateType.Death);
+        TransitionState(EnemyStateType.Death);
     }
     public void DestoryEnemy()
     {

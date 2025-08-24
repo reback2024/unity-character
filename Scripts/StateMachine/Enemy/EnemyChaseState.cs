@@ -23,7 +23,7 @@ public class EnemyChaseState : IState
 
     public void OnFixedUpdate()
     {
-        Move();
+       enemy.Move();
     }
 
     public void OnUpdate()
@@ -31,7 +31,7 @@ public class EnemyChaseState : IState
         //ÅĞ¶ÏµĞÈËÊÇ·ñÊÜÉË
         if (enemy.isHurt)
         {
-            enemy.TransitionState(EnemySateType.Hurt);
+            enemy.TransitionState(EnemyStateType.Hurt);
         }
 
         enemy.GetPlayerTransform();
@@ -46,7 +46,7 @@ public class EnemyChaseState : IState
             //ÊÇ·ñÔÚ¹¥»÷·¶Î§ÄÚ
             if(enemy.distance<=enemy.attackDistance)
             {
-                enemy.TransitionState(EnemySateType.Attack);
+                enemy.TransitionState(EnemyStateType.Attack);
             }
             else
             {
@@ -58,28 +58,9 @@ public class EnemyChaseState : IState
         else
         {
             //Í£Ö¹×·»÷£¬·µ»Ø´ı»ú×´Ì¬
-            enemy.TransitionState(EnemySateType.Idle);
+            enemy.TransitionState(EnemyStateType.Idle);
         }
     }
-    //ÒÆ¶¯º¯Êı
-    void Move()
-    {
-        if (enemy.MovementInput.magnitude > 0.1f && enemy.currentSpeed >= 0)
-        {
-            enemy.rb.velocity = enemy.MovementInput * enemy.currentSpeed;
-            //Íæ¼Ò×óÓÒ·­×ª
-            if (enemy.MovementInput.x < 0)
-            {
-                enemy.sr.flipX = false;
-            }
-            if (enemy.MovementInput.x > 0)
-            {
-                enemy.sr.flipX = true;
-            }
-        }
-        else
-        {
-            enemy.rb.velocity = Vector2.zero;
-        }
-    }
+    
+
 }

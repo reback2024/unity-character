@@ -38,7 +38,7 @@ public class EnemyAttackState : IState
         //判断敌人是否受伤
         if(enemy.isHurt)
         {
-            enemy.TransitionState(EnemySateType.Hurt);
+            enemy.TransitionState(EnemyStateType.Hurt);
         }
 
         //禁止敌人移动
@@ -59,7 +59,7 @@ public class EnemyAttackState : IState
 
         if (info.normalizedTime >= 1f)//播放完后切换动画
         {
-            enemy.TransitionState(EnemySateType.Idle);
+            enemy.TransitionState(EnemyStateType.Idle);
         }
     }
 }

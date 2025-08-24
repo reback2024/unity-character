@@ -37,7 +37,7 @@ public class EnemyHurtState : IState
             Timer = 0;
             enemy.isHurt = false;
             //ÇÐ»»µ½´ý»ú×´Ì¬
-            enemy.TransitionState(EnemySateType.Idle);
+            enemy.TransitionState(EnemyStateType.Idle);
         }
     }
 

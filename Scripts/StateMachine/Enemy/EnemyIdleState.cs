@@ -8,6 +8,8 @@ using UnityEngine;
 public class EnemyIdleState: IState
 {
     private Enemy enemy;
+
+    private float Timer = 0f;
     //构造函数
     public EnemyIdleState(Enemy enemy)
     {
@@ -34,7 +36,7 @@ public class EnemyIdleState: IState
         //判断敌人是否受伤
         if (enemy.isHurt)
         {
-            enemy.TransitionState(EnemySateType.Hurt);
+            enemy.TransitionState(EnemyStateType.Hurt);
         }
 
         enemy.GetPlayerTransform();
@@ -43,11 +45,23 @@ public class EnemyIdleState: IState
         {
             if (enemy.distance > enemy.attackDistance)
             {
-                enemy.TransitionState(EnemySateType.Chase);
+                enemy.TransitionState(EnemyStateType.Chase);
             }
             else
             {
-                enemy.TransitionState(EnemySateType.Attack);
+                enemy.TransitionState(EnemyStateType.Attack);
+            }
+        }
+        else//如果玩家为空，等待一段时间进入巡逻状态
+        {
+            if (Timer <= enemy.IdleDuration) 
+            {
+                Timer += Time.deltaTime;
+            }
+            else
+            {
+                Timer = 0;
+                enemy.TransitionState(EnemyStateType.Patrol);
             }
         }
     }
