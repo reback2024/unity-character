@@ -57,6 +57,8 @@ public class Enemy : Character
     // 字典dictionary<键，值>对
     private Dictionary<EnemyStateType, IState> states = new Dictionary<EnemyStateType, IState>();
 
+    private PickupSpawner PickupSpawner;//掉落物品脚本
+    
     private void Awake()
     {
         seeker = GetComponent<Seeker>();
@@ -64,6 +66,7 @@ public class Enemy : Character
         rb = GetComponent<Rigidbody2D>();
         enemyColler = GetComponent<Collider2D>();
         animator = GetComponent<Animator>();
+        PickupSpawner=GetComponent<PickupSpawner>();
 
         //实例化敌人状态
         states.Add(EnemyStateType.Idle, new EnemyIdleState(this));
@@ -87,6 +90,17 @@ public class Enemy : Character
         currentState=states[type];
         currentState.OnEnter();
     }
+
+    private void Start()
+    {
+        EnemyManager.Instance.EnemyCount++;
+    }
+
+    private void OnDestroy()
+    {
+        EnemyManager.Instance.EnemyCount--;
+    }
+
     private void Update()
     {
         currentState.OnUpdate();
@@ -213,6 +227,7 @@ public class Enemy : Character
     }
     public void DestoryEnemy()
     {
+        PickupSpawner.DropItems();
         Destroy(this.gameObject);
     }
     #endregion

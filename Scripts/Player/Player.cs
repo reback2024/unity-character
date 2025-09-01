@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public enum PlayerStateType
 {
@@ -25,7 +26,8 @@ public class Player : Character
     public Vector2 attackSize = new Vector2(1f, 1f);//攻击范围
     public float offestX = 1f;//x轴偏移量
     public float offestY = 1f;//y轴偏移量
-    public LayerMask enemyLayer;
+    public LayerMask enemyLayer;//敌人图层
+    public LayerMask destructibleLayer;//可破环物体图层
     private Vector2 AttackAreaPos;
 
     [Header("闪避")]
@@ -34,14 +36,15 @@ public class Player : Character
     public float dodgeDuration = 0f;
     public float dodgeCooldown = 1f;//闪避冷却时间
     public bool isDodegOnCooldown = false;//闪避是否在冷却时间中
+    public UnityEvent<float> OnDodgeUpdate;
 
     [Header("受伤死亡")]
     public bool isHurt;
-    public bool isDead; 
+    public bool isDead;
 
-    public SpriteRenderer sr;
-    public Rigidbody2D rb;
-    public Animator ani;
+    [HideInInspector] public SpriteRenderer sr;
+    [HideInInspector] public Rigidbody2D rb;
+    [HideInInspector] public Animator ani;
 
     private IState currentState;//当前状态
     // 字典dictionary<键，值>对
@@ -137,6 +140,7 @@ public class Player : Character
 
     public void DodgeOnCooldown()
     {
+        OnDodgeUpdate?.Invoke(dodgeCooldown);//更新冷却条，传入冷却时间
         StartCoroutine(nameof(DodgeOnCooldownCoroutine));
     }
 
@@ -167,12 +171,22 @@ public class Player : Character
         AttackAreaPos.y += offestY;
 
         Collider2D[] hitColliders = Physics2D.OverlapBoxAll(AttackAreaPos, attackSize, 0f, enemyLayer);
+        Collider2D[] destructiveColliders = Physics2D.OverlapBoxAll(AttackAreaPos, attackSize, 0f, destructibleLayer);
 
+        //判断是否为敌人
         foreach (Collider2D hitCollider in hitColliders)
         {
             hitCollider.GetComponent<Character>().TakeDamage(meleeAttackDamage * isAttack);
             //hitCollider.GetComponent<EnemyController>().Konckback(transform.position);
+
         }
+
+        //判断是否为可破坏物体
+        foreach(Collider2D hitCollider in destructiveColliders)
+        {
+            hitCollider.GetComponent<Destructible>().DestroyObject();
+        }
+
     }
     #endregion
 
@@ -187,6 +201,7 @@ public class Player : Character
     public void PlayerDead()
     {
         isDead = true;
+        input.DisableAllInputs();
         TransitionState(PlayerStateType.Death);
     }
     #endregion 

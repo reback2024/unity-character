@@ -31,6 +31,8 @@ public class PlayerIdleState : IState
 
     public void OnUpdate()
     {
+        player.ani.SetFloat("speed", player.rb.velocity.magnitude);
+
         //ÒÆ¶¯
         if (player.inputDirection != Vector2.zero)
         {

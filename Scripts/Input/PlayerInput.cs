@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Events;
+using Unity.VisualScripting;
 
 [CreateAssetMenu(fileName="Player Input")]
 public class PlayerInput : ScriptableObject,InputActions.IGameplayActions
@@ -36,6 +37,11 @@ public class PlayerInput : ScriptableObject,InputActions.IGameplayActions
         actionMap.Enable();
     }//切换动作表
 
+    //禁用所有动作表
+    public void DisableAllInputs()
+    {
+        inputActions.Disable();
+    }
     public void OnDodge(InputAction.CallbackContext context)
     {
         if(context.started)//按下那一刻

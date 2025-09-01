@@ -13,11 +13,15 @@ public class Character : MonoBehaviour
     public bool invulnerable;
     public float invulnerableDuration;
 
+    [Header("UI")]
+    public UnityEvent<float, float> OnhealthUpdate;
+
     public UnityEvent OnHurt;
     public UnityEvent OnDie;
     protected virtual void OnEnable()
     {
         curHealth = maxHealth;
+        OnhealthUpdate?.Invoke(maxHealth, curHealth);
     }
 
     public virtual void TakeDamage(float damage)
@@ -33,8 +37,22 @@ public class Character : MonoBehaviour
         }
         else
         {
+            //死亡
             Die();
         }
+
+        GameManager.Instance.ShowText("-" + damage, transform.position, Color.red);
+
+        OnhealthUpdate?.Invoke(maxHealth, curHealth);//更新血量UI
+    }
+
+    //回复血量
+    public virtual void RestoreHealth(float value)
+    {
+        if (curHealth == maxHealth) return;
+        if (curHealth + value > maxHealth) curHealth = maxHealth;
+        else curHealth += value;
+        OnhealthUpdate?.Invoke(maxHealth, curHealth);//更新血量UI
     }
 
     public virtual void Die()
