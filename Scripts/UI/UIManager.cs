@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
+    public static UIManager Instance {  get; private set; }
+
     [Header("UI组件")]
     public GameObject gameOverPanel;
     public GameObject gamePassPanel;
@@ -13,22 +15,17 @@ public class UIManager : MonoBehaviour
     public Button btnContinue;//继续
     public Slider healthSlider;//血量
     public Slider dodgecooldownSlider;//闪避冷却条 
+
+    private void Awake()
+    {
+        Instance = this;
+    }
     // Start is called before the first frame update
     void Start()
     {
         //给按钮添加事件监听
         btnRestart.onClick.AddListener(OnRestartButtonClick);
         btnContinue.onClick.AddListener(OnRestartButtonClick);//这里还没做下一关，先结束
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        //通关条件
-        if (EnemyManager.Instance.GetLastWave() && EnemyManager.Instance.EnemyCount == 0)
-        {
-            gamePassPanel.SetActive(true);
-        }
     }
 
     //血量条UI
@@ -70,6 +67,6 @@ public class UIManager : MonoBehaviour
     public void OnRestartButtonClick()
     {
         //重新加载场景
-        Sceneloader.Instance.LoadMainScene();
+        //Sceneloader.Instance.LoadMainScene();
     }
 }

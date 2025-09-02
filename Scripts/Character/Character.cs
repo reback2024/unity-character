@@ -6,8 +6,8 @@ using UnityEngine.Events;
 public class Character : MonoBehaviour
 {
     [Header(" Ù–‘")]
-    [SerializeField]protected float maxHealth;
-    [SerializeField]protected float curHealth;
+    public float maxHealth;
+    public float curHealth;
 
     [Header("Œﬁµ–")]
     public bool invulnerable;
@@ -21,6 +21,10 @@ public class Character : MonoBehaviour
     protected virtual void OnEnable()
     {
         curHealth = maxHealth;
+    }
+
+    private void Start()
+    {
         OnhealthUpdate?.Invoke(maxHealth, curHealth);
     }
 

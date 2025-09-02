@@ -10,6 +10,8 @@ public enum PlayerStateType
 
 public class Player : Character
 {
+    public static Player Instance { get; private set; }
+
     [Header("获取玩家输入")]
     public PlayerInput input;
 
@@ -36,7 +38,7 @@ public class Player : Character
     public float dodgeDuration = 0f;
     public float dodgeCooldown = 1f;//闪避冷却时间
     public bool isDodegOnCooldown = false;//闪避是否在冷却时间中
-    public UnityEvent<float> OnDodgeUpdate;
+    //public UnityEvent<float> OnDodgeUpdate;
 
     [Header("受伤死亡")]
     public bool isHurt;
@@ -52,6 +54,8 @@ public class Player : Character
 
     private void Awake()
     {
+        Instance = this;
+
         rb=GetComponent<Rigidbody2D>();
         ani= GetComponent<Animator>();
         sr = GetComponent<SpriteRenderer>();
@@ -108,6 +112,12 @@ public class Player : Character
         currentState.OnFixedUpdate();
     }
 
+    //血量UI
+    public void UIUpdateHealthSlider()
+    {
+        UIManager.Instance.UpdateHealthSlider(maxHealth,curHealth);
+    }
+
     #region 移动
    public void Move(Vector2 moveInput)
    {
@@ -140,7 +150,8 @@ public class Player : Character
 
     public void DodgeOnCooldown()
     {
-        OnDodgeUpdate?.Invoke(dodgeCooldown);//更新冷却条，传入冷却时间
+        //OnDodgeUpdate?.Invoke(dodgeCooldown);//更新冷却条，传入冷却时间
+        UIManager.Instance.DodegCooldownSlider(dodgeCooldown);
         StartCoroutine(nameof(DodgeOnCooldownCoroutine));
     }
 
@@ -193,6 +204,7 @@ public class Player : Character
     #region 受伤
     public void PlayerHurt()
     {
+        TimeController.Instance.BulletTime();
         isHurt = true;
     }
     #endregion
@@ -203,6 +215,7 @@ public class Player : Character
         isDead = true;
         input.DisableAllInputs();
         TransitionState(PlayerStateType.Death);
+        UIManager.Instance.showGameOvetPanel();
     }
     #endregion 
 

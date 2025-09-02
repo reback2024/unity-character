@@ -9,7 +9,9 @@ public class GameManager : MonoBehaviour
     //单例模式
     public static GameManager Instance { get; private set; }
 
-    private int coinCount;
+    public int coinCount {  get; private set; }
+
+    public float PlayerCurrentHealth {  get; private set; }
 
     private void Awake()
     {
@@ -25,18 +27,11 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);//加载新场景时,不销毁该对象
     }
 
-    //增加金币
-    public void AddCoins(int value)
+    public void ChangeCoins(int amount)
     {
-        coinCount += value;
-        UICoinCountText.UpdateText(coinCount);//更新金币文本UI
-    }
-
-    //减少金币
-    public void RemoveCoins(int value)
-    {
-        coinCount -= value;
-        UICoinCountText.UpdateText(coinCount);//更新金币文本UI
+        coinCount += amount;
+        if (coinCount < 0) coinCount = 0;
+        UICoinCountText.UpdateText(coinCount);
     }
 
     //提示数值
@@ -47,5 +42,18 @@ public class GameManager : MonoBehaviour
         text.transform.SetParent(GameObject.Find("HUD").transform);//UI 元素必须有Canvas才能显示
         text.GetComponent<UIShowText>().SetText(str, color);
 
+    }
+
+    //保存数据
+    public void SaveData()
+    {
+        PlayerCurrentHealth = Player.Instance.curHealth;
+    }
+
+    //加载数据
+    public void LoadData()
+    {
+        Player.Instance.curHealth = PlayerCurrentHealth;
+        UICoinCountText.UpdateText(coinCount);
     }
 }

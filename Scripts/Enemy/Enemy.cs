@@ -5,14 +5,18 @@ using UnityEngine.Events;
 using Pathfinding;
 using UnityEditorInternal;
 using System.Xml.Serialization;
+
 //敌人状态枚举
 public enum EnemyStateType
 {
-    Idle,Patrol,Chase,Attack,Hurt,Death
+    Idle, Patrol, Chase, Attack, Hurt, Death
 }
 
 public class Enemy : Character
 {
+    // 新增：死亡回调事件（MiniMap用）
+    public System.Action<Enemy> OnDeath;
+
     [Header("目标")]
     public Transform player;
 
@@ -20,7 +24,6 @@ public class Enemy : Character
     public float IdleDuration;//待机时间
     public Transform[] patrolPoints;//巡逻点
     public int targetPointIndex = 0;//目标巡逻点
-
 
     [Header("移动追击")]
     [SerializeField] public float currentSpeed = 0;
@@ -31,7 +34,7 @@ public class Enemy : Character
 
     private Seeker seeker;
     [HideInInspector] public List<Vector3> pathPointlist;//路径点列表
-    [HideInInspector]public int currentIndex;//路径点索引
+    [HideInInspector] public int currentIndex;//路径点索引
     private float pathGenerateInterval = 0.5f;//每0.5s生成一次路径
     private float pathGenerateTimer = 0f;//计时器
 
@@ -54,11 +57,10 @@ public class Enemy : Character
     [HideInInspector] public Collider2D enemyColler;
 
     private IState currentState;//当前状态
-    // 字典dictionary<键，值>对
     private Dictionary<EnemyStateType, IState> states = new Dictionary<EnemyStateType, IState>();
 
     private PickupSpawner PickupSpawner;//掉落物品脚本
-    
+
     private void Awake()
     {
         seeker = GetComponent<Seeker>();
@@ -66,9 +68,8 @@ public class Enemy : Character
         rb = GetComponent<Rigidbody2D>();
         enemyColler = GetComponent<Collider2D>();
         animator = GetComponent<Animator>();
-        PickupSpawner=GetComponent<PickupSpawner>();
+        PickupSpawner = GetComponent<PickupSpawner>();
 
-        //实例化敌人状态
         states.Add(EnemyStateType.Idle, new EnemyIdleState(this));
         states.Add(EnemyStateType.Chase, new EnemyChaseState(this));
         states.Add(EnemyStateType.Attack, new EnemyAttackState(this));
@@ -76,18 +77,16 @@ public class Enemy : Character
         states.Add(EnemyStateType.Death, new EnemyDeathState(this));
         states.Add(EnemyStateType.Patrol, new EnemyPatrolState(this));
 
-        //默认状态
         TransitionState(EnemyStateType.Idle);
     }
 
-    //用于切换敌人状态的函数
     public void TransitionState(EnemyStateType type)
     {
         if (currentState != null)
         {
             currentState.OnExit();
         }
-        currentState=states[type];
+        currentState = states[type];
         currentState.OnEnter();
     }
 
@@ -111,15 +110,14 @@ public class Enemy : Character
         currentState.OnFixedUpdate();
     }
 
-    //判断是否在追击范围内
     public void GetPlayerTransform()
     {
-        Collider2D[] chaseColliders=Physics2D.OverlapCircleAll(transform.position,chaseDistance,playerLayer);
+        Collider2D[] chaseColliders = Physics2D.OverlapCircleAll(transform.position, chaseDistance, playerLayer);
 
-        if(chaseColliders.Length > 0 )//玩家在追击范围内
+        if (chaseColliders.Length > 0)
         {
             player = chaseColliders[0].transform;
-            distance=Vector2.Distance(player.position,transform.position);
+            distance = Vector2.Distance(player.position, transform.position);
         }
         else
         {
@@ -128,13 +126,11 @@ public class Enemy : Character
     }
 
     #region 移动
-    //移动函数
     public void Move()
     {
         if (MovementInput.magnitude > 0.1f && currentSpeed >= 0)
         {
             rb.velocity = MovementInput * currentSpeed;
-            //玩家左右翻转
             if (MovementInput.x < 0)
             {
                 sr.flipX = false;
@@ -152,10 +148,9 @@ public class Enemy : Character
     #endregion
 
     #region 自动寻路
-    //自动寻路
     public void Autopath()
     {
-        if(player == null) return;
+        if (player == null) return;
         pathGenerateTimer += Time.deltaTime;
         if (pathGenerateTimer >= pathGenerateInterval)
         {
@@ -167,9 +162,9 @@ public class Enemy : Character
         {
             GeneratePath(player.position);
         }
-        else if (currentIndex < pathPointlist.Count) 
+        else if (currentIndex < pathPointlist.Count)
         {
-            if(Vector2.Distance(transform.position, pathPointlist[currentIndex]) <= 0.1f)
+            if (Vector2.Distance(transform.position, pathPointlist[currentIndex]) <= 0.1f)
             {
                 currentIndex++;
                 if (currentIndex >= pathPointlist.Count)
@@ -177,14 +172,12 @@ public class Enemy : Character
             }
         }
     }
-    //获取路径点
     public void GeneratePath(Vector3 target)
     {
         currentIndex = 0;
-        seeker.StartPath(transform.position, target, Path => 
+        seeker.StartPath(transform.position, target, Path =>
         {
             pathPointlist = Path.vectorPath;
-            //这里找到的是到目标点的路径的每个点的坐标
         });
     }
     #endregion
@@ -204,8 +197,8 @@ public class Enemy : Character
     private void MeleeAttcakAnimEvent()
     {
         Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, attackDistance, playerLayer);
-    
-        foreach(Collider2D hitCollider in hitColliders)
+
+        foreach (Collider2D hitCollider in hitColliders)
         {
             hitCollider.GetComponent<Character>().TakeDamage(meleeAttackDamage);
         }
@@ -213,7 +206,6 @@ public class Enemy : Character
     #endregion
 
     #region 受伤
-    //受伤事件触发的回调函数
     public void EnemyHurt()
     {
         isHurt = true;
@@ -228,18 +220,19 @@ public class Enemy : Character
     public void DestoryEnemy()
     {
         PickupSpawner.DropItems();
+
+        // 新增：死亡时触发回调
+        if (OnDeath != null) OnDeath.Invoke(this);
+
         Destroy(this.gameObject);
     }
     #endregion
 
-    //显示追击范围
     private void OnDrawGizmosSelected()
     {
-        //显示攻击范围
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attackDistance);
 
-        //显示追击范围
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, chaseDistance);
     }
