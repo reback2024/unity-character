@@ -47,7 +47,7 @@ public class GameManager : MonoBehaviour
     //保存数据
     public void SaveData()
     {
-        PlayerCurrentHealth = Player.Instance.curHealth;
+        PlayerCurrentHealth = Player.Instance.maxHealth;
     }
 
     //加载数据
