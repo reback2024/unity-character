@@ -17,7 +17,7 @@ public class PlayerMoveState : IState
 
     public void OnEnter()
     {
-
+        //Debug.Log("playermove");
     }
 
     public void OnExit()
@@ -55,6 +55,7 @@ public class PlayerMoveState : IState
         // ‹…À
         if (player.isHurt)
         {
+            player.rb.velocity = Vector2.zero;
             player.TransitionState(PlayerStateType.Hurt);
         }
     }

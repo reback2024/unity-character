@@ -19,6 +19,7 @@ public class PlayerHurtState : IState
     public void OnEnter()
     {
         player.ani.SetTrigger("Hurt");
+        //Debug.Log("playerhurt");
     }
 
     public void OnExit()
@@ -33,8 +34,8 @@ public class PlayerHurtState : IState
 
     public void OnUpdate()
     {
-        info = player.ani.GetCurrentAnimatorStateInfo(0);
-
+        info = player.ani.GetCurrentAnimatorStateInfo(3);
+        //Debug.Log(info.normalizedTime);
         if (info.normalizedTime >= .95f) //当播放到95%以上的时候
         {
             player.TransitionState(PlayerStateType.Idle);

@@ -2,10 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 
 public enum PlayerStateType
 {
-    Idle,Move,Dodge,MeleeAttack,Hurt,Death
+    Idle, Move, Dodge, MeleeAttack, Hurt, Death
 }
 
 public class Player : Character
@@ -20,6 +21,7 @@ public class Player : Character
     public float normalSpeed = 3f;//默认速度
     public float attackSpeed = 1f;//攻击时玩家的速度
     private float currentSpeed;//当前速度
+    bool canMove = true;
 
 
     [Header("近战攻击")]
@@ -51,13 +53,16 @@ public class Player : Character
     private IState currentState;//当前状态
     // 字典dictionary<键，值>对
     private Dictionary<PlayerStateType, IState> states = new Dictionary<PlayerStateType, IState>();
+    [Header("背包")]
+    public GameObject myBag;
+    bool isOpen;
 
     private void Awake()
     {
         Instance = this;
 
-        rb=GetComponent<Rigidbody2D>();
-        ani= GetComponent<Animator>();
+        rb = GetComponent<Rigidbody2D>();
+        ani = GetComponent<Animator>();
         sr = GetComponent<SpriteRenderer>();
 
         //实例化
@@ -91,7 +96,7 @@ public class Player : Character
         input.onMeleeAttack -= MeleeAttack;
     }
 
-    //用于切换敌人状态的函数
+    //用于切换状态的函数
     public void TransitionState(PlayerStateType type)
     {
         if (currentState != null)
@@ -105,6 +110,13 @@ public class Player : Character
     private void Update()
     {
         currentState.OnUpdate();
+        if (!canMove)
+        {
+            StopMove();
+        }
+
+
+        OpenMybag();
     }
 
     private void FixedUpdate()
@@ -115,16 +127,24 @@ public class Player : Character
     //血量UI
     public void UIUpdateHealthSlider()
     {
-        UIManager.Instance.UpdateHealthSlider(maxHealth,curHealth);
+        UIManager.Instance.UpdateHealthSlider(maxHealth, curHealth);
     }
 
     #region 移动
-   public void Move(Vector2 moveInput)
-   {
-       inputDirection = moveInput;
-   }
+    public void CanotMove()
+    {
+        canMove = false;
+    }
+    public void CanMove()
+    {
+        canMove = true;
+    }
+    public void Move(Vector2 moveInput)
+    {
+        inputDirection = moveInput;
+    }
 
-   public void Move()
+    public void Move()
     {
         currentSpeed = isMeleeAttack ? attackSpeed : normalSpeed;
 
@@ -132,10 +152,10 @@ public class Player : Character
         if (inputDirection.x > 0) sr.flipX = false;
         if (inputDirection.x < 0) sr.flipX = true;
     }
-    
+
     public void StopMove()
     {
-        inputDirection=Vector2.zero;
+        inputDirection = Vector2.zero;
     }
     #endregion
 
@@ -166,7 +186,8 @@ public class Player : Character
     #region 近战攻击
     public void MeleeAttack()
     {
-        if(!isDodging)
+        
+        if (!isDodging && !isOpen )
         {
             ani.SetTrigger("meleeAttack");
             isMeleeAttack = true;
@@ -193,7 +214,7 @@ public class Player : Character
         }
 
         //判断是否为可破坏物体
-        foreach(Collider2D hitCollider in destructiveColliders)
+        foreach (Collider2D hitCollider in destructiveColliders)
         {
             hitCollider.GetComponent<Destructible>().DestroyObject();
         }
@@ -218,12 +239,31 @@ public class Player : Character
         UIManager.Instance.showGameOvetPanel();
     }
     #endregion 
+    void OpenMybag()
+    {
+        if (Input.GetKeyDown(KeyCode.B))
+        {
+            isOpen = !isOpen;
+            myBag.SetActive(isOpen);
 
+           
+        }
+    }
+    public bool _isOpen()
+    {
+        return isOpen;
+    }
+    public bool _changeOpen()
+    {
+        isOpen = !isOpen;
+        return isOpen;
+    }
     //绘图用于测试
+
     private void OnDrawGizmosSelected()
     {
-        
+
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireCube(AttackAreaPos,attackSize);
+        Gizmos.DrawWireCube(AttackAreaPos, attackSize);
     }
 }

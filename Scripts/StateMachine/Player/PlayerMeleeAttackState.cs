@@ -17,6 +17,7 @@ public class PlayerMeleeAttackState : IState
     public void OnEnter()
     {
         player.ani.SetBool("isMeleeAttack", player.isMeleeAttack);
+
     }
 
     public void OnExit()

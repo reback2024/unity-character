@@ -31,6 +31,14 @@ public class Sceneloader : MonoBehaviour
     //切换场景协程
     public IEnumerator TransitionCoroutine(string newSceneName)
     {
+
+        //Debug.Log("Sceneloader 准备访问 GameManager.Instance: " + GameManager.Instance); // 关键日志
+        //if (GameManager.Instance == null)
+        //{
+        //    Debug.LogError("GameManager.Instance 为 null！无法调用 SaveData()");
+        //    yield break; // 临时终止协程，避免崩溃
+        //}
+
         //保存所有持久化数据
         GameManager.Instance.SaveData();
 

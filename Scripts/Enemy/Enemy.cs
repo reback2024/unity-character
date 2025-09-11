@@ -14,7 +14,7 @@ public enum EnemyStateType
 
 public class Enemy : Character
 {
-    // 新增：死亡回调事件（MiniMap用）
+    // 死亡回调事件（MiniMap用）
     public System.Action<Enemy> OnDeath;
 
     [Header("目标")]
@@ -60,6 +60,10 @@ public class Enemy : Character
     private Dictionary<EnemyStateType, IState> states = new Dictionary<EnemyStateType, IState>();
 
     private PickupSpawner PickupSpawner;//掉落物品脚本
+
+    // 新增：标记是否需要重置巡逻路径（用于Idle切Patrol时）
+    [HideInInspector] public bool needResetPatrol = false;
+
 
     private void Awake()
     {
@@ -179,6 +183,29 @@ public class Enemy : Character
         {
             pathPointlist = Path.vectorPath;
         });
+    }
+
+    // Enemy类中新增：生成巡逻点的公共方法（所有状态都能调用）
+    public void GeneratePatrolPoint()
+    {
+        // 确保有巡逻点才能生成（避免数组为空报错）
+        if (patrolPoints == null || patrolPoints.Length == 0)
+            return;
+
+        // 随机选一个和当前不同的巡逻点
+        while (true)
+        {
+            int randomIndex = Random.Range(0, patrolPoints.Length);
+            if (targetPointIndex != randomIndex)
+            {
+                targetPointIndex = randomIndex;
+                break;
+            }
+        }
+
+        // 根据选中的巡逻点生成路径
+        GeneratePath(patrolPoints[targetPointIndex].position);
+        currentIndex = 0; // 重置路径索引，从第一个点开始走
     }
     #endregion
 

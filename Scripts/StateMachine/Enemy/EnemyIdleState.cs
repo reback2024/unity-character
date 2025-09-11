@@ -18,7 +18,7 @@ public class EnemyIdleState: IState
     public void OnEnter()
     {
         enemy.animator.Play("Idle");
-        enemy.rb.velocity = Vector2.zero;
+        //enemy.rb.velocity = Vector2.zero;
     }
 
     public void OnExit()

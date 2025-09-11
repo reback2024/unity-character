@@ -52,7 +52,7 @@ public class PlayerInput : ScriptableObject,InputActions.IGameplayActions
 
     public void OnMeleeAttack(InputAction.CallbackContext context)
     {
-        if(context.started)//按下那一刻
+        if(context.started&& !Player.Instance._isOpen())//按下那一刻
         {
             onMeleeAttack?.Invoke();
         }

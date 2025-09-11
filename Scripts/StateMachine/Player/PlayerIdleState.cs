@@ -17,6 +17,7 @@ public class PlayerIdleState : IState
     public void OnEnter()
     {
         player.ani.Play("playeridle");
+        //Debug.Log("playeridle");
     }
 
     public void OnExit()

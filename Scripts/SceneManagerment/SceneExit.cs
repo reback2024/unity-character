@@ -25,6 +25,7 @@ public class SceneExit : MonoBehaviour
     //³¡¾°ÇÐ»»º¯Êý
     public void TransitionInternal()
     {
+        Day.instance.addday();
         Sceneloader.Instance.TransitionToString(newSceneName);
     }
 }
